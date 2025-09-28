@@ -1,0 +1,86 @@
+[
+  {
+    "id": "23e5165b-480b-4073-b7e8-fbe0c2c5c21c",
+    "conversationId": "intercom-test-789",
+    "customerEmail": "griselda.ceballos23@gmail.com",
+    "customerName": "Griselda Ceballos",
+    "agentName": "Support Agent",
+    "status": "success",
+    "retryCount": 0,
+    "errorMessage": null,
+    "trustpilotInvitationId": "<df5b9304-2380-4b5b-7628-5dc52fc23a79@soetex.com>",
+    "responseLog": {
+      "messageId": "<df5b9304-2380-4b5b-7628-5dc52fc23a79@soetex.com>",
+      "method": "smtp"
+    },
+    "timestamp": "2025-09-16T15:00:11.272Z"
+  },
+  {
+    "id": "eb7a0bfa-2bfd-4c29-9749-f03fef892513",
+    "conversationId": "test",
+    "customerEmail": "test@example.com",
+    "customerName": "Test",
+    "agentName": "Agent",
+    "status": "failed",
+    "retryCount": 3,
+    "errorMessage": "Can't send mail - all recipients were rejected: 550-The mail server could not deliver mail to test@example.com.  The account or\n550-domain may not exist, they may be blacklisted, or missing the proper dns\n550 entries.",
+    "trustpilotInvitationId": null,
+    "responseLog": null,
+    "timestamp": "2025-09-16T14:59:04.139Z"
+  },
+  {
+    "id": "b244fde7-49d3-40f8-bc1f-813d91c6b8a7",
+    "conversationId": "test-conversation-123",
+    "customerEmail": "griselda.ceballos23@gmail.com",
+    "customerName": "Griselda Ceballos",
+    "agentName": "Support Agent",
+    "status": "success",
+    "retryCount": 0,
+    "errorMessage": null,
+    "trustpilotInvitationId": "<02169a43-c100-4668-3d7f-26b55478aee0@soetex.com>",
+    "responseLog": {
+      "messageId": "<02169a43-c100-4668-3d7f-26b55478aee0@soetex.com>",
+      "method": "smtp"
+    },
+    "timestamp": "2025-09-16T14:19:25.175Z"
+  },
+  {
+    "id": "42fd58c1-668c-4b3f-85b7-f423718bf4cb",
+    "conversationId": "test_1757962076065",
+    "customerEmail": "test@example.com",
+    "customerName": "Test Customer",
+    "agentName": "Test Agent",
+    "status": "failed",
+    "retryCount": 3,
+    "errorMessage": "Can't send mail - all recipients were rejected: 550-The mail server could not deliver mail to test@example.com.  The account or\n550-domain may not exist, they may be blacklisted, or missing the proper dns\n550 entries.",
+    "trustpilotInvitationId": null,
+    "responseLog": null,
+    "timestamp": "2025-09-15T18:47:56.098Z"
+  },
+  {
+    "id": "5c126523-0ce8-4045-af4b-b2d4237ae3ef",
+    "conversationId": "test_1757961148502",
+    "customerEmail": "test@example.com",
+    "customerName": "Test Customer",
+    "agentName": "Test Agent",
+    "status": "failed",
+    "retryCount": 3,
+    "errorMessage": "Can't send mail - all recipients were rejected: 550-The mail server could not deliver mail to test@example.com.  The account or\n550-domain may not exist, they may be blacklisted, or missing the proper dns\n550 entries.",
+    "trustpilotInvitationId": null,
+    "responseLog": null,
+    "timestamp": "2025-09-15T18:32:28.523Z"
+  },
+  {
+    "id": "788908ab-3bf4-4afd-9318-2ae2bde03498",
+    "conversationId": "test_1757958974211",
+    "customerEmail": "test@example.com",
+    "customerName": "Test Customer",
+    "agentName": "Test Agent",
+    "status": "failed",
+    "retryCount": 3,
+    "errorMessage": "Can't send mail - all recipients were rejected: 550-The mail server could not deliver mail to test@example.com.  The account or\n550-domain may not exist, they may be blacklisted, or missing the proper dns\n550 entries.",
+    "trustpilotInvitationId": null,
+    "responseLog": null,
+    "timestamp": "2025-09-15T17:56:14.269Z"
+  }
+]
