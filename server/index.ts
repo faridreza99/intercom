@@ -6,24 +6,22 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
-// Environment validation and configuration
+// -------------------- Environment validation --------------------
 function validateEnvironment() {
-  const requiredEnvVars = ['SMTP_USER', 'SMTP_PASSWORD'];
+  const requiredEnvVars = ["SMTP_USER", "SMTP_PASSWORD"];
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  // Check required environment variables
   for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
       errors.push(`Required environment variable ${envVar} is missing`);
     }
   }
 
-  // Check optional but recommended environment variables
   const optionalEnvVars = [
-    { name: 'INTERCOM_TOKEN', description: 'Required for Intercom integration' },
-    { name: 'BUSINESS_NAME', description: 'Used in email templates' },
-    { name: 'TRUSTPILOT_DOMAIN', description: 'Required for review link generation' }
+    { name: "INTERCOM_TOKEN", description: "Required for Intercom integration" },
+    { name: "BUSINESS_NAME", description: "Used in email templates" },
+    { name: "TRUSTPILOT_DOMAIN", description: "Required for review link generation" },
   ];
 
   for (const { name, description } of optionalEnvVars) {
@@ -32,39 +30,42 @@ function validateEnvironment() {
     }
   }
 
-  // Validate PORT if provided
   if (process.env.PORT && isNaN(parseInt(process.env.PORT))) {
-    errors.push('PORT environment variable must be a valid number');
+    errors.push("PORT environment variable must be a valid number");
   }
 
   return { errors, warnings };
 }
 
+// -------------------- App setup --------------------
 const app = express();
 
-// Enable CORS for all routes - required for external webhook requests
-app.use(cors({
-  origin: true, // Allow all origins for webhook testing (Intercom sends from various domains)
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Intercom-Webhook-Secret', 'X-Requested-With'],
-  credentials: false
-}));
+app.use(
+  cors({
+    origin: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Intercom-Webhook-Secret", "X-Requested-With"],
+    credentials: false,
+  })
+);
 
-// Configure Express routing settings
-app.set('case sensitive routing', false);
-app.set('strict routing', false);
+app.set("case sensitive routing", false);
+app.set("strict routing", false);
 
-// Apply JSON parsing to all routes EXCEPT webhook routes (which use raw body parser)
+// Skip JSON parsing for webhook routes
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/webhook/intercom') || req.path.startsWith('/api/notifications/intercom')) {
-    return next(); // Skip JSON parsing for webhook routes
+  if (
+    req.path.startsWith("/api/webhook/intercom") ||
+    req.path.startsWith("/api/notifications/intercom")
+  ) {
+    return next();
   }
   express.json()(req, res, next);
 });
 
 app.use(express.urlencoded({ extended: false }));
 
-// Request logging middleware
+// -------------------- Request logging --------------------
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -83,8 +84,8 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+      if (logLine.length > 120) {
+        logLine = logLine.slice(0, 119) + "…";
       }
       log(logLine);
     }
@@ -93,66 +94,70 @@ app.use((req, res, next) => {
   next();
 });
 
+// -------------------- Bootstrap server --------------------
 (async () => {
-  // Validate environment configuration before starting services
   const { errors, warnings } = validateEnvironment();
-  
+
   if (warnings.length > 0) {
-    log('Environment warnings detected:', 'config');
-    warnings.forEach(warning => log(`  ⚠️  ${warning}`, 'config'));
+    log("Environment warnings detected:", "config");
+    warnings.forEach((warning) => log(`  ⚠️  ${warning}`, "config"));
   }
-  
+
   if (errors.length > 0) {
-    log('Environment configuration issues detected:', 'config');
-    errors.forEach(error => log(`  ❌ ${error}`, 'config'));
-    log('Application will start with degraded functionality', 'config');
+    log("Environment configuration issues detected:", "config");
+    errors.forEach((error) => log(`  ❌ ${error}`, "config"));
+    log("Application will start with degraded functionality", "config");
   }
 
   const server = await registerRoutes(app);
 
+  // -------------------- Error handler --------------------
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
+    log(`Unhandled error: ${message}`, "error");
   });
 
+  // -------------------- Frontend setup --------------------
   try {
     if (app.get("env") === "development") {
       await setupVite(app, server);
-      log('Development server setup completed', 'vite');
+      log("Development server setup completed", "vite");
     } else {
       serveStatic(app);
-      log('Static file serving configured', 'static');
+      log("Static file serving configured", "static");
     }
   } catch (error: any) {
-    log(`Frontend setup failed: ${error.message}`, 'error');
-    log('Application will continue without frontend assets', 'error');
+    log(`Frontend setup failed: ${error.message}`, "error");
+    log("Application will continue without frontend assets", "error");
   }
 
-  const port = parseInt(process.env.PORT || '5000', 10);
-  
-  try {
-    server.listen({
-      port,
-      host: "0.0.0.0",
-    }, () => {
-      log(`serving on port ${port}`, 'startup');
-      log('Application successfully initialized', 'startup');
-    });
+  // -------------------- Start server --------------------
+  const port = parseInt(process.env.PORT || "5000", 10);
 
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        log(`Port ${port} is already in use. Attempting to use a different port...`, 'error');
+  try {
+    server.listen(
+      {
+        port,
+        host: "0.0.0.0",
+      },
+      () => {
+        log(`Serving on port ${port}`, "startup");
+        log("Application successfully initialized", "startup");
+      }
+    );
+
+    server.on("error", (err: any) => {
+      if (err.code === "EADDRINUSE") {
+        log(`Port ${port} is already in use. Exiting...`, "error");
         process.exit(1);
       } else {
-        log(`Server error: ${err.message}`, 'error');
+        log(`Server error: ${err.message}`, "error");
       }
     });
-
   } catch (error: any) {
-    log(`Failed to start server: ${error.message}`, 'error');
-    log('Application initialization failed', 'error');
+    log(`Failed to start server: ${error.message}`, "error");
     process.exit(1);
   }
 })();
