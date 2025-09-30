@@ -143,42 +143,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ROBUST WEBHOOK: Production-ready endpoint with full webhook processing
-  app.post("/api/notifications/intercom", async (req, res) => {
-    log(`🔔 INTERCOM NOTIFICATIONS POST ${req.originalUrl}`);
-    
-    try {
-      // Parse webhook payload - Intercom sends JSON
-      const webhookData = req.body;
-      
-      // Handle verification requests first (empty or test payloads)
-      if (!webhookData || !webhookData.type) {
-        log('Webhook verification request - returning success');
-        return res.status(200).json({
-          message: 'Webhook endpoint is ready and active',
-          status: 'ok',
-          timestamp: new Date().toISOString()
-        });
-      }
+ app.post("/api/webhook/intercom", async (req, res) => {
+  try {
+    const rawBody = req.body;
+    const jsonString = rawBody.toString("utf8"); // raw → string
+    const parsed = JSON.parse(jsonString); // string → JSON
 
-      // Validate the webhook data structure
-      const validatedData = intercomWebhookSchema.parse(webhookData);
-      log(`Webhook event: ${validatedData.type}`);
+    const data = parsed?.data?.item;
+    const email = data?.contacts?.[0]?.email;
+    const name = data?.contacts?.[0]?.name;
+    const agent = data?.assignee?.name;
+    const conversationId = data?.id;
 
-      // Only process conversation.closed events
-      if (validatedData.type === 'conversation.admin.closed' || validatedData.type === 'conversation.closed') {
-        const conversation = validatedData.data.item;
-        const conversationId = conversation.id;
+    console.log("✅ Webhook Data:", { email, name, agent, conversationId });
 
-        // Check for deduplication
-        const existingLog = await storage.getInvitationLog(conversationId);
-        if (existingLog) {
-          log(`Duplicate webhook for conversation ${conversationId} - skipping`);
-          return res.status(200).json({ 
-            message: 'Webhook processed (duplicate)', 
-            conversationId,
-            timestamp: new Date().toISOString()
-          });
-        }
+    return res.status(200).json({
+      message: "Webhook parsed successfully",
+      email,
+      name,
+      agent,
+      conversationId,
+    });
+  } catch (err: any) {
+    console.error("❌ Webhook parsing failed:", err);
+    return res.status(200).json({
+      message: "Webhook active but failed to parse",
+    });
+  }
+});
 
         // Extract customer info
         const contacts = conversation.contacts?.contacts || [];
