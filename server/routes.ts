@@ -210,20 +210,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         log(`Started processing invitation for ${email} (conversation: ${conversationId})`);
         
-        return res.status(200).json({ 
-          message: 'Webhook processed successfully', 
-          conversationId,
-          customerEmail: email,
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        log(`Ignored webhook type: ${validatedData.type}`);
-        return res.status(200).json({ 
-          message: 'Webhook received but not processed', 
-          type: validatedData.type,
-          timestamp: new Date().toISOString() 
-        });
-      }
+        if (validatedData.type === 'conversation.admin.closed') {
+  // Store initial log
+  await storage.createInvitationLog({
+    conversationId,
+    customerEmail: email,
+    customerName: name,
+    agentName,
+    status: 'processing',
+  });
+
+  // Process invitation asynchronously
+  processInvitationWithRetry(conversationId, email, name, agentName)
+    .catch(error => {
+      console.error(Async invitation processing failed for ${conversationId}, error);
+    });
+
+  log(Started processing invitation for ${email} (conversation: ${conversationId}));
+
+  return res.status(200).json({
+    message: 'Webhook processed successfully',
+    conversationId,
+    customerEmail: email,
+    timestamp: new Date().toISOString()
+  });
+} else {
+  log(Ignored webhook type: ${validatedData.type});
+  return res.status(200).json({
+    message: 'Webhook received but not processed',
+    type: validatedData.type,
+    timestamp: new Date().toISOString()
+  });
+}
 
     } catch (error: any) {
       console.error('Error processing webhook:', error);
