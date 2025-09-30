@@ -249,6 +249,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SIMPLIFIED Webhook endpoint for Intercom - Always returns success for tests  
   app.post("/api/webhook/intercom", async (req, res) => {
     log(`🔔 WEBHOOK POST ${req.originalUrl}`);
+     // ✅ STEP 1: Webhook থেকে গুরুত্বপূর্ণ তথ্য বের করে আনছি
+  const data = req.body?.data?.item;
+
+  const email = data?.contacts?.[0]?.email;
+  const name = data?.contacts?.[0]?.name;
+  const agent = data?.assignee?.name;
+  const conversationId = data?.id;
+
+  console.log("Webhook Data:", { email, name, agent, conversationId });
+
+
     
     // ALWAYS return success to pass Intercom's test
     // This prevents "Unsuccessful test request" errors
