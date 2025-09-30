@@ -1,16 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { logger } from "./services/logger";
-import { createTrustpilotService } from "./services/trustpilot";
-import { createIntercomService } from "./services/intercom";
-import { createEmailService, type ReviewInvitationData } from "./services/email";
-import { intercomWebhookSchema } from "@shared/schema";
-import { z } from "zod";
 import { log } from "./vite";
 import bodyParser from "body-parser";
 
-// Retry configuration
+// Retry config placeholder (can be extended later)
 const RETRY_DELAYS = [5000, 10000, 20000];
 const MAX_RETRIES = 3;
 
@@ -19,8 +12,10 @@ async function delay(ms: number): Promise<void> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Middleware: Accept raw body for webhook
   app.use('/api/webhook/intercom', bodyParser.raw({ type: () => true }));
 
+  // Handle preflight (OPTIONS) for CORS
   app.options("/api/webhook/intercom", (req, res) => {
     res.header('Access-Control-Allow-Origin', req.get('Origin') || '*');
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
@@ -29,22 +24,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(204).end();
   });
 
+  // ✅ STEP 1: Webhook POST endpoint (Basic Data Extraction)
   app.post("/api/webhook/intercom", async (req, res) => {
     log(🔔 WEBHOOK POST ${req.originalUrl});
 
-    // ✅ STEP 1: Webhook Data Extraction
     try {
-      const data = req.body?.data?.item;
+      const bodyString = req.body.toString('utf8');
+      const webhookJson = JSON.parse(bodyString);
+      const data = webhookJson?.data?.item;
 
-      const email = data?.contacts?.[0]?.email;
-      const name = data?.contacts?.[0]?.name;
-      const agent = data?.assignee?.name;
-      const conversationId = data?.id;
+      const email = data?.contacts?.contacts?.[0]?.email || 'No email';
+      const name = data?.contacts?.contacts?.[0]?.name || 'No name';
+      const agent = data?.assignee?.name || 'Unknown agent';
+      const conversationId = data?.id || 'No ID';
 
-      console.log("Webhook Data:", { email, name, agent, conversationId });
+      console.log("✅ Webhook Data:", { email, name, agent, conversationId });
 
       return res.status(200).json({
-        message: 'Webhook endpoint is ready and active',
+        message: 'Webhook received successfully',
         status: 'ok',
         timestamp: new Date().toISOString(),
         email,
@@ -53,17 +50,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId
       });
     } catch (err: any) {
-      console.error('Webhook parse error:', err);
+      console.error('❌ Webhook parse error:', err);
       return res.status(200).json({
-        message: 'Webhook endpoint active but parsing failed',
+        message: 'Webhook received but JSON parse failed',
         status: 'ok',
         timestamp: new Date().toISOString()
       });
     }
   });
 
-  // 👇 other routes remain unchanged
-  // You can add others like /api/health, /api/logs etc. after this step
+  // 👇 Later you can add other routes (like /api/logs, /api/health) here
+
   const server = createServer(app);
   return server;
 }
