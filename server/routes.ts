@@ -158,5 +158,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
           conversationId,
           customerEmail: email,
           customerName: name,
-          agentName,
-          status: 'processing',<a class="inline-citation" data-entity-id="125473166" data-entity-type="129" data-source-index="1"></a>
