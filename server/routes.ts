@@ -9,7 +9,7 @@ async function processInvitationWithRetry( conversationId: string, email: string
 // Generate Trustpilot review link
 const businessName = process.env.BUSINESS_NAME || 'Our Business';
 const trustpilotDomain = process.env.TRUSTPILOT_DOMAIN || 'your-business.trustpilot.com';
-const reviewLink = https://www.trustpilot.com/evaluate/${trustpilotDomain}?utm_source=email&utm_medium=invitation&utm_campaign=intercom_automation;
+const reviewLink = `https://www.trustpilot.com/evaluate/${trustpilotDomain}?utm_source=email&utm_medium=invitation&utm_campaign=intercom_automation`;
 
 const reviewData: ReviewInvitationData = {
   customerEmail: email,
