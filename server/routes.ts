@@ -100,10 +100,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  app.post("/api/notifications/intercom", async (req, res) => {
+  app.post("/api/webhook/intercom", async (req, res) => {
     log(`🔔 INTERCOM NOTIFICATIONS POST ${req.originalUrl}`);
     try {
       const webhookData = req.body;
+      console.log("📩 Incoming Webhook Payload:", JSON.stringify(webhookData, null, 2));
+
       if (!webhookData || !webhookData.type) {
         log('Webhook verification request - returning success');
         return res.status(200).json({ message: 'Webhook endpoint is ready and active', status: 'ok', timestamp: new Date().toISOString() });
@@ -128,7 +130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const contactId = contacts[0].id;
+        console.log(`🔍 Fetching contact details for ID: ${contactId}`);
         const contactDetails = await fetchContactDetails(contactId);
+        console.log("👤 Full Contact Response:", JSON.stringify(contactDetails, null, 2));
 
         if (!contactDetails || !contactDetails.email) {
           log(`No email returned for contact ${contactId}`);
