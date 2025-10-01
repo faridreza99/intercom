@@ -100,8 +100,7 @@ const contacts = conversation.contacts?.contacts || [];
   const parts = conversation.conversation_parts?.conversation_parts || [];
   const lastPart = parts[parts.length - 1];
   const agentName = lastPart?.author?.name || 'Our Support Team';
-  console.log("✅ Received Webhook Data:", validatedData);
-  if (validatedData.type === 'conversation.admin.closed') {
+   if (validatedData.type === 'conversation.admin.closed') {
     await storage.createInvitationLog({
       conversationId,
       customerEmail: email,
