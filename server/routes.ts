@@ -9,7 +9,7 @@ import { intercomWebhookSchema } from "@shared/schema";
 import { z } from "zod";
 import { log } from "./vite";
 import bodyParser from "body-parser";
-import { fetchContactDetails } from "./fetchContactDetails"; // ✅ Import fetch function
+import { fetchContactDetails } from "./fetchContactDetails";
 
 const RETRY_DELAYS = [5000, 10000, 20000];
 const MAX_RETRIES = 3;
@@ -28,7 +28,7 @@ async function processInvitationWithRetry(
   try {
     const emailService = createEmailService();
     const businessName = process.env.BUSINESS_NAME || 'Our Business';
-    const trustpilotDomain = process.env.TRUSTPILOT_DOMAIN || 'your-business.trustpilot.com';
+    const trustpilotDomain = process.env.TRUSTPILOT_DOMAIN || '[your-business.trustpilot.com](https://your-business.trustpilot.com)';
     const reviewLink = `https://www.trustpilot.com/evaluate/${trustpilotDomain}?utm_source=email&utm_medium=invitation&utm_campaign=intercom_automation`;
 
     const reviewData: ReviewInvitationData = {
@@ -81,8 +81,9 @@ async function processInvitationWithRetry(
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Changed to JSON parser for webhook endpoint
   app.use('/api/webhook/intercom', bodyParser.json());
-
+  app.use('/api/notifications/intercom', bodyParser.json());
 
   app.options("/api/webhook/intercom", (req, res) => {
     res.header('Access-Control-Allow-Origin', req.get('Origin') || '*');
@@ -101,14 +102,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/webhook/intercom", async (req, res) => {
-    log(`🔔 INTERCOM NOTIFICATIONS POST ${req.originalUrl}`);
+    log(`🔔 INTERCOM WEBHOOK POST ${req.originalUrl}`);
     try {
       const webhookData = req.body;
       console.log("📩 Incoming Webhook Payload:", JSON.stringify(webhookData, null, 2));
 
       if (!webhookData || !webhookData.type) {
         log('Webhook verification request - returning success');
-        return res.status(200).json({ message: 'Webhook endpoint is ready and active', status: 'ok', timestamp: new Date().toISOString() });
+        return res.status(200).json({ 
+          message: 'Webhook endpoint is ready and active', 
+          status: 'ok', 
+          timestamp: new Date().toISOString() 
+        });
       }
 
       const validatedData = intercomWebhookSchema.parse(webhookData);
@@ -117,10 +122,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.type === 'conversation.admin.closed' || validatedData.type === 'conversation.closed') {
         const conversation = validatedData.data.item;
         const conversationId = conversation.id;
+        
         const existingLog = await storage.getInvitationLog(conversationId);
         if (existingLog) {
           log(`Duplicate webhook for conversation ${conversationId} - skipping`);
-          return res.status(200).json({ message: 'Webhook processed (duplicate)', conversationId, timestamp: new Date().toISOString() });
+          return res.status(200).json({ 
+            message: 'Webhook processed (duplicate)', 
+            conversationId, 
+            timestamp: new Date().toISOString() 
+          });
         }
 
         const contacts = conversation.contacts?.contacts || [];
@@ -151,25 +161,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerName: name,
           agentName,
           status: 'processing',
-        });
-
-        processInvitationWithRetry(conversationId, email, name, agentName)
-          .catch(error => console.error(`Async invitation processing failed for ${conversationId}:`, error));
-
-        log(`Started processing invitation for ${email} (conversation: ${conversationId})`);
-
-        return res.status(200).json({ message: 'Webhook processed successfully', conversationId, customerEmail: email, timestamp: new Date().toISOString() });
-      } else {
-        log(`Ignored webhook type: ${validatedData.type}`);
-        return res.status(200).json({ message: 'Webhook received but not processed', type: validatedData.type, timestamp: new Date().toISOString() });
-      }
-    } catch (error: any) {
-      console.error('Error processing webhook:', error);
-      log(`Webhook processing error: ${error.message}`);
-      return res.status(200).json({ message: 'Webhook received but processing failed', error: error.message, timestamp: new Date().toISOString() });
-    }
-  });
-
-  const server = createServer(app);
-  return server;
-}
+        });<a class="inline-citation" data-entity-id="107893457" data-entity-type="129" data-source-index="1"></a>
