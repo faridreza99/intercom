@@ -34,7 +34,7 @@ if (result.success) {
     await logger.logInvitation(updatedLog);
   }
 
-  console.log(Successfully sent invitation for conversation ${conversationId});
+  console.log(`Successfully sent invitation for conversation ${conversationId}`);
 } else {
   throw new Error(result.error || 'Failed to send invitation');
 }
