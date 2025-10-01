@@ -14,6 +14,7 @@ export async function fetchContactDetails(contactId: string) {
 
     const contact = response.data;
     console.log("Full API Response:", JSON.stringify(contact, null, 2));
+    console.log("Fetching contact details for ID:", contactId); // ✅ এটাও add করুন
 
     console.log("✅ Contact Found:");
     console.log("Name:", contact.name);
