@@ -28,7 +28,7 @@ async function processInvitationWithRetry(
   try {
     const emailService = createEmailService();
     const businessName = process.env.BUSINESS_NAME || 'Our Business';
-    const trustpilotDomain = process.env.TRUSTPILOT_DOMAIN || '[your-business.trustpilot.com](https://your-business.trustpilot.com)';
+    const trustpilotDomain = process.env.TRUSTPILOT_DOMAIN || 'your-business.trustpilot.com';
     const reviewLink = `https://www.trustpilot.com/evaluate/${trustpilotDomain}?utm_source=email&utm_medium=invitation&utm_campaign=intercom_automation`;
 
     const reviewData: ReviewInvitationData = {
@@ -50,12 +50,12 @@ async function processInvitationWithRetry(
       await storage.incrementInviteCount('success');
       const updatedLog = await storage.getInvitationLog(conversationId);
       if (updatedLog) await logger.logInvitation(updatedLog);
-      console.log(`Successfully sent invitation for conversation ${conversationId}`);
+      console.log(`✅ Successfully sent invitation for conversation ${conversationId}`);
     } else {
       throw new Error(result.error || 'Failed to send invitation');
     }
   } catch (error: any) {
-    console.error(`Error sending invitation for conversation ${conversationId}:`, error);
+    console.error(`❌ Error sending invitation for conversation ${conversationId}:`, error);
     if (retryCount < MAX_RETRIES) {
       await storage.updateInvitationLog(conversationId, {
         status: 'retrying',
@@ -73,14 +73,15 @@ async function processInvitationWithRetry(
         errorMessage: error.message,
       });
       await storage.incrementInviteCount('failed');
-      const log = await storage.getInvitationLog(conversationId);
-      if (log) await logger.logInvitation(log);
+      const logEntry = await storage.getInvitationLog(conversationId);
+      if (logEntry) await logger.logInvitation(logEntry);
       console.error(`Failed to send invitation for conversation ${conversationId} after ${MAX_RETRIES} attempts`);
     }
   }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Use JSON body parser for Intercom webhooks
   app.use('/api/webhook/intercom', bodyParser.json());
   app.use('/api/notifications/intercom', bodyParser.json());
 
@@ -158,3 +159,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           conversationId,
           customerEmail: email,
           customerName: name,
+          agentName,
+          status: 'processing',
+        });
+
+        await processInvitationWithRetry(conversationId, email, name, agentName);
+
+        return res.status(200).json({
+          message: 'Webhook processed successfully',
+          conversationId,
+          customerEmail: email,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        log(`Ignored webhook type: ${validatedData.type}`);
+        return res.status(200).json({
+          message: 'Webhook received but not processed',
+          type: validatedData.type,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+    } catch (error: any) {
+      console.error('❌ Error processing webhook:', error);
+      log(`Webhook processing error: ${error.message}`);
+      return res.status(200).json({
+        message: 'Webhook received but processing failed',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  return createServer(app);
+}
