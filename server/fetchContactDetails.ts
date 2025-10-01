@@ -13,6 +13,7 @@ export async function fetchContactDetails(contactId: string) {
     });
 
     const contact = response.data;
+    console.log("Full API Response:", JSON.stringify(contact, null, 2));
 
     console.log("✅ Contact Found:");
     console.log("Name:", contact.name);
