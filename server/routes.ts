@@ -81,7 +81,6 @@ async function processInvitationWithRetry(
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Changed to JSON parser for webhook endpoint
   app.use('/api/webhook/intercom', bodyParser.json());
   app.use('/api/notifications/intercom', bodyParser.json());
 
@@ -109,10 +108,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!webhookData || !webhookData.type) {
         log('Webhook verification request - returning success');
-        return res.status(200).json({ 
-          message: 'Webhook endpoint is ready and active', 
-          status: 'ok', 
-          timestamp: new Date().toISOString() 
+        return res.status(200).json({
+          message: 'Webhook endpoint is ready and active',
+          status: 'ok',
+          timestamp: new Date().toISOString()
         });
       }
 
@@ -122,14 +121,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.type === 'conversation.admin.closed' || validatedData.type === 'conversation.closed') {
         const conversation = validatedData.data.item;
         const conversationId = conversation.id;
-        
+
         const existingLog = await storage.getInvitationLog(conversationId);
         if (existingLog) {
           log(`Duplicate webhook for conversation ${conversationId} - skipping`);
-          return res.status(200).json({ 
-            message: 'Webhook processed (duplicate)', 
-            conversationId, 
-            timestamp: new Date().toISOString() 
+          return res.status(200).json({
+            message: 'Webhook processed (duplicate)',
+            conversationId,
+            timestamp: new Date().toISOString()
           });
         }
 
@@ -157,8 +156,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         await storage.createInvitationLog({
           conversationId,
-          customerEmail: email,
-          customerName: name,
-          agentName,
-          status: 'processing',
-        });<a class="inline-citation" data-entity-id="107893457" data-entity-type="129" data-source-index="1"></a>
+          customerEmail: email,<a class="inline-citation" data-entity-id="113937823" data-entity-type="129" data-source-index="1"></a><a class="inline-citation" data-entity-id="120444401" data-entity-type="129" data-source-index="2"></a><a class="inline-citation" data-entity-id="142150053" data-entity-type="129" data-source-index="3"></a>
