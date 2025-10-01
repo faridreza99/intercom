@@ -156,4 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         await storage.createInvitationLog({
           conversationId,
-          customerEmail: email,<a class="inline-citation" data-entity-id="113937823" data-entity-type="129" data-source-index="1"></a><a class="inline-citation" data-entity-id="120444401" data-entity-type="129" data-source-index="2"></a><a class="inline-citation" data-entity-id="142150053" data-entity-type="129" data-source-index="3"></a>
+          customerEmail: email,
+          customerName: name,
+          agentName,
+          status: 'processing',<a class="inline-citation" data-entity-id="125473166" data-entity-type="129" data-source-index="1"></a>
