@@ -81,8 +81,8 @@ async function processInvitationWithRetry(
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  app.use('/api/webhook/intercom', bodyParser.raw({ type: () => true }));
-  app.use('/api/notifications/intercom', bodyParser.raw({ type: () => true }));
+  app.use('/api/webhook/intercom', bodyParser.json());
+
 
   app.options("/api/webhook/intercom", (req, res) => {
     res.header('Access-Control-Allow-Origin', req.get('Origin') || '*');
